@@ -1,0 +1,22 @@
+[
+  {
+    "type": "native_transfer",
+    "to": "0xd328426a8e0bcdbbef89e96a91911eff68734e84",
+    "value": "0.001",
+    "description": "Transfer 0.001 ETH to address"
+  },
+  {
+    "type": "erc20_transfer",
+    "to": "0x3EBaDD6F15537BC18367882ecBd16a3c9Ea121b7",
+    "value": "0",
+    "data": "0xa9059cbb000000000000000000000000d328426a8e0bcdbbef89e96a91911eff68734e840000000000000000000000000000000000000000000000000000000000000064",
+    "description": "Transfer 100 CLM tokens"
+  },
+  {
+    "type": "erc20_approve",
+    "to": "0x65e37B558F64E2Be5768DB46DF22F93d85741A9E",
+    "value": "0",
+    "data": "0x095ea7b3000000000000000000000000d328426a8e0bcdbbef89e96a91911eff68734e840000000000000000000000000000000000000000000000000000000000000000",
+    "description": "Approve unlimited SepoliaMNT spending"
+  }
+]
