@@ -20,6 +20,28 @@ const SUPPORTED_CHAINS = [
   { id: base.id, name: 'Base', logo: '/base-logo.svg' },
 ];
 
+// Chain ID to chain name mapping
+const CHAIN_NAMES = {
+  1: 'Ethereum',
+  137: 'Polygon',
+  56: 'Binance Smart Chain',
+  42161: 'Arbitrum',
+  8453: 'Base'
+};
+
+// Get native currency name based on chain ID
+function getNativeCurrencyName(chainId: number | undefined): string {
+  if (!chainId) return 'ETH';
+  switch (chainId) {
+    case 56: // BSC
+      return 'BNB';
+    case 137: // Polygon
+      return 'POL';
+    default:
+      return 'ETH';
+  }
+}
+
 // 根据链ID获取区块浏览器链接
 function getExplorerUrl(chainId: number, txHash: string): string {
   const explorerUrls = {
@@ -86,6 +108,13 @@ const texts = {
     copy: '复制',
     nativeTransfer: 'Native Transfer',
     erc20Transfer: 'ERC20 Transfer',
+    // Header/status and network info
+    networkInfoTitle: '网络信息',
+    networkChangedPrompt: '网络已切换，请重新执行交易',
+    currentChainLabel: '当前链',
+    unknownChain: '未知链',
+    chainIdLabel: '链ID',
+    addressLabel: '地址',
   },
   en: {
     title: 'Wallet Scavenger',
@@ -136,6 +165,13 @@ const texts = {
     copy: 'Copy',
     nativeTransfer: 'Native Transfer',
     erc20Transfer: 'ERC20 Transfer',
+    // Header/status and network info
+    networkInfoTitle: 'Network Info',
+    networkChangedPrompt: 'Network switched, please retry the transactions',
+    currentChainLabel: 'Current chain',
+    unknownChain: 'Unknown chain',
+    chainIdLabel: 'Chain ID',
+    addressLabel: 'Address',
   }
 };
 
@@ -191,6 +227,8 @@ export default function Home() {
   const [customTransactions, setCustomTransactions] = useState<any[]>([]);
   const [isChainDropdownOpen, setIsChainDropdownOpen] = useState(false);
   const [precheckResult, setPrecheckResult] = useState<{ total: number; valid: number; failed: number } | null>(null);
+  const [networkChanged, setNetworkChanged] = useState(false);
+  const [previousChainId, setPreviousChainId] = useState<number | null>(null);
   const chainDropdownRef = useRef<HTMLDivElement>(null);
   const [language, setLanguage] = useState<Language>('en');
   const t = texts[language];
@@ -313,6 +351,27 @@ export default function Home() {
     }
   };
 
+  // Listen to chain changes
+  useEffect(() => {
+    if (chainId && previousChainId && chainId !== previousChainId) {
+      // Chain has changed
+      console.log('Network switched', { from: previousChainId, to: chainId });
+      setTransactionHash(null);
+      setStatusError(null);
+      setStatusLoading(false);
+      setNetworkChanged(true);
+      // Hide network switch message after 3 seconds
+      setTimeout(() => setNetworkChanged(false), 3000);
+      // Clear all transaction data when network changes
+      setCustomTransactions([]);
+      setTransactionCounts(null);
+      setPrecheckResult(null);
+      // Reset wagmi transaction state
+      reset();
+    }
+    setPreviousChainId(chainId);
+  }, [chainId, previousChainId, reset]);
+
   const handleSwitchChain = async (targetChainId: number) => {
     // 如果已经在目标链上，直接关闭下拉菜单
     if (chainId === targetChainId) {
@@ -323,13 +382,6 @@ export default function Home() {
     try {
       setIsChainDropdownOpen(false);
       await switchChain({ chainId: targetChainId });
-      // 切换成功后，重置相关状态
-      setCustomTransactions([]);
-      setTransactionHash(null);
-      setStatusError(null);
-      setTransactionCounts(null);
-      setPrecheckResult(null);
-      reset();
     } catch (error: any) {
       console.error('切换链失败:', error);
       // 显示错误信息
@@ -576,6 +628,43 @@ export default function Home() {
           </div>
         )}
 
+        {/* Network information section */}
+        {isConnected && chainId && (
+          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg w-full">
+            <h2 className="text-xl font-semibold mb-4">🌐 {t.networkInfoTitle}</h2>
+            
+            {/* 网络切换提示 */}
+            {networkChanged && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 text-green-800">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">{t.networkChangedPrompt}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 链信息显示 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="text-sm text-blue-800">
+                <div className="font-medium flex items-center gap-2">
+                  <Image src="/blockchain2.svg" alt="Chain" width={16} height={16} />
+                  {t.currentChainLabel}: {CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] || `${t.unknownChain} (${chainId})`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Image src="/id.svg" alt="Chain ID" width={16} height={16} />
+                  {t.chainIdLabel}: {chainId}
+                </div>
+                {address && (
+                  <div className="flex items-center gap-2">
+                    <Image src="/address.svg" alt="Address" width={16} height={16} />
+                    {t.addressLabel}: {address.slice(0, 6)}...{address.slice(-4)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Asset Checker Section */}
         <AssetChecker onGenerateTransactions={handleGenerateTransactions} language={language} />
 
@@ -698,7 +787,7 @@ export default function Home() {
                           {transaction.type !== 'native_transfer' && (
                             <>To: {transaction.to.slice(0, 6)}...{transaction.to.slice(-4)}</>
                           )}
-                          {transaction.value !== "0" && ` Value: ${transaction.value} ETH`}
+                          {transaction.value !== "0" && ` Value: ${transaction.value} ${getNativeCurrencyName(chainId)}`}
                           {transaction.data && ` | Data: ${transaction.data.slice(0, 10)}...`}
                         </div>
                       </div>
@@ -706,7 +795,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <div className="text-xs font-medium text-purple-800 border-t border-purple-400 pt-2">
-                {t.totalAmount} {displayedTransactions.reduce((total, tx) => total + parseFloat(tx.value), 0)} ETH
+                {t.totalAmount} {displayedTransactions.reduce((total, tx) => total + parseFloat(tx.value), 0)} {getNativeCurrencyName(chainId)}
                 </div>
               </div>
             );

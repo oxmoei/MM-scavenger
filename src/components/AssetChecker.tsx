@@ -87,7 +87,7 @@ const assetCheckerTexts = {
     transferAllAssetsDesc: '利用 MetaMask 智能账户（EIP-7702）的批量交易功能，一键转移钱包内的所有资产（原生代币+ERC20代币）！原子交易，更加安全、便捷、高效、节省Gas费！',
     transferToAddress: '🎯 转移到目标地址：',
     transferNote: '注：所有资产将转移到此地址，请确保该地址输入正确并对该钱包拥有绝对控制权！',
-    importantReminder: '重要提醒：请确保钱包中有足够的原生代币（ETH /BNB /POLY等）',
+    importantReminder: '重要提醒：请确保钱包中有足够的原生代币（ETH /BNB /POL等）',
     gasFeeNote: '发送交易需要有足够的原生代币用于支付Gas费。如果原生代币不足，交易将失败！',
     generateBatchTransfer: '生成批量转账数据',
     generatingTransactions: '⌛ 正在预检并生成交易数据...',
@@ -118,7 +118,7 @@ const assetCheckerTexts = {
     transferAllAssetsDesc: 'Powered by MetaMask Smart Account (EIP-7702), transfer all your assets (native tokens + ERC20 tokens) with one click! Atomic transactions, safer, more convenient, efficient, and gas-saving!',
     transferToAddress: '🎯 Transfer to Address:',
     transferNote: 'Note: All assets will be transferred to this address. Please ensure the address is correct and you have absolute control over this wallet!',
-    importantReminder: 'Important Reminder: Please ensure you have sufficient native tokens (ETH /BNB /POLY, etc.)',
+    importantReminder: 'Important Reminder: Please ensure you have sufficient native tokens (ETH /BNB /POL, etc.)',
     gasFeeNote: 'Sending transactions requires sufficient native tokens to pay for gas fees. If native tokens are insufficient, the transaction will fail!',
     generateBatchTransfer: 'Generate Batch Transfer Data',
     generatingTransactions: '⌛ Pre-checking and generating transaction data...',
@@ -148,7 +148,6 @@ export default function AssetChecker({ onGenerateTransactions, language = 'en' }
   const [nativeBalance, setNativeBalance] = useState<string>('0');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [networkChanged, setNetworkChanged] = useState(false);
   const [previousChainId, setPreviousChainId] = useState<number | null>(null);
   const [targetAddressInput, setTargetAddressInput] = useState<string>('');
   const [hasQueriedAssets, setHasQueriedAssets] = useState(false);
@@ -168,11 +167,8 @@ export default function AssetChecker({ onGenerateTransactions, language = 'en' }
       console.log('🔄️ 网络已切换:', { from: previousChainId, to: chainId });
       setAssets([]);
       setError(null);
-      setNetworkChanged(true);
       setHasQueriedAssets(false);
       setPrecheckResult(null); // 重置预检结果
-      // 3秒后隐藏网络切换提示
-      setTimeout(() => setNetworkChanged(false), 3000);
     }
     setPreviousChainId(chainId);
   }, [chainId, previousChainId]);
@@ -496,40 +492,6 @@ export default function AssetChecker({ onGenerateTransactions, language = 'en' }
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg w-full">
-      <h2 className="text-xl font-semibold mb-4">{t.walletAssetQuery}</h2>
-      
-      {/* 网络切换提示 */}
-      {networkChanged && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <div className="flex items-center gap-2 text-green-800">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="font-medium">{t.networkSwitched}</span>
-          </div>
-        </div>
-      )}
-
-      {/* 链信息显示 */}
-      {chainId && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <div className="text-xs text-blue-800">
-            <div className="font-medium flex items-center gap-2">
-              <Image src="/blockchain2.svg" alt="Chain" width={16} height={16} className="w-4 h-4" />
-              {t.currentChain}: {CHAIN_NAMES[chainId as keyof typeof CHAIN_NAMES] || `${t.unknownChain} (${chainId})`}
-            </div>
-            <div className="flex items-center gap-2">
-              <Image src="/id.svg" alt="Chain ID" width={16} height={16} className="w-4 h-4" />
-              {t.chainId}: {chainId}
-            </div>
-            {address && (
-              <div className="flex items-center gap-2">
-                <Image src="/address.svg" alt="Address" width={16} height={16} className="w-4 h-4" />
-                {t.address}: {address.slice(0, 6)}...{address.slice(-4)}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* 查询按钮 */}
       <button
         className={`w-full rounded-lg border border-solid px-6 py-3 font-medium transition-colors mb-4 ${
