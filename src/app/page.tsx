@@ -110,7 +110,7 @@ const texts = {
     erc20Transfer: 'ERC20 Transfer',
     // Header/status and network info
     networkInfoTitle: '网络信息',
-    networkChangedPrompt: '网络已切换，请重新执行交易',
+    networkChangedPrompt: '网络已切换',
     currentChainLabel: '当前链',
     unknownChain: '未知链',
     chainIdLabel: '链ID',
@@ -167,7 +167,7 @@ const texts = {
     erc20Transfer: 'ERC20 Transfer',
     // Header/status and network info
     networkInfoTitle: 'Network Info',
-    networkChangedPrompt: 'Network switched, please retry the transactions',
+    networkChangedPrompt: 'Network switched',
     currentChainLabel: 'Current chain',
     unknownChain: 'Unknown chain',
     chainIdLabel: 'Chain ID',
